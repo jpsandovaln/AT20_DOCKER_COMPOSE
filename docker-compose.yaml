@@ -19,8 +19,16 @@ services:
       - MONGO_URI=mongodb://root:example@mongo:27017/myapp
 
   admission_service:
-    build: ./AT20_ADMISSION_SERVICE
+    build: ./AT20_ADMISSION_SERVICE/dashboard
     ports:
       - '3000:3000'
     environment:
       - REACT_APP_API_URL=http://localhost:5000/api
+
+  questionaire_service:
+    build: ./AT20_QUESTIONNAIRE_SERVICE/
+    ports:
+      - '8818:8818'
+    environment:
+      - PORT = 8818
+      - PINO_LOG_LEVEL = info
