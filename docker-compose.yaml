@@ -1,5 +1,7 @@
 version: '3.9'
-
+networks:
+  app-tier:
+    driver: bridge
 services:
   mongo:
     image: mongo
@@ -24,3 +26,67 @@ services:
       - '3000:3000'
     environment:
       - REACT_APP_API_URL=http://localhost:5000/api
+  converter_service:
+    image: converter_service
+    build: ./AT20_CONVERT_SERVICE_TS/Dockerfile
+    ports:
+      - '9090:9090'
+    environment:
+      - PORT=9090 
+      - FFMPEG=ffmpeg
+      - MAGICK=magick
+      - UPLOADS_PATH_PDF=./src/service/pdfConverter/inputs/
+      - UPLOADS_PATH_AUDIO=./src/service/audioConverter/inputs/
+      - UPLOADS_PATH_IMAGE=./src/service/imageConverter/inputs/
+      - UPLOADS_PATH_VIDEO=./src/service/videoConverter/inputs/
+      - DOWNLOAD_PATH_AUDIO=./src/service/audioConverter/outputs/
+      - DOWNLOAD_PATH_IMAGE=./src/service/imageConverter/outputs/
+      - DOWNLOAD_PATH_VIDEO=./src/service/videoConverter/outputs/
+      - DOWNLOAD_PATH_PDF=./src/service/pdfConverter/outputs/
+  converter_service_documentation: 
+    image: comverter_service_documentation
+    build: ./AT20_CONVERTER_DOCUMENTATION/Dockerfile
+    ports: 
+      - '9595:9595'
+    environment:
+      - PORT = 9595
+  Db:
+    image: mysql:latest
+    build: 
+      context: .
+      dockerfile: ./AT20_QUESTIONNAIRE_SERVICE/src/services/DB/Dockerfile 
+    ports: 
+      - "33060:3306"
+    expose: 
+      - "33060"
+    restart: always 
+    environment: 
+      MYSQL_ROOT_PASSWORD: "at20123"
+      MYSQL_HOST: "at20_questionnaire_service-Db-1"
+      MYSQL_PORT: "3306"
+    volumes:
+      - ./src/services/DB/questionnairedb.sql:/docker-entrypoint-initdb.d/questionnairedb.sql
+    networks:
+      - app-tier 
+
+  questionnaire_service:
+    image: questionnaire_service
+    build: 
+      context: . 
+      dockerfile: ./AT20_QUESTIONNAIRE_SERVICE/Dockerfile
+    depends_on:
+      - Db
+    ports:
+      - "8821:8820"
+    expose: 
+      - "8821"
+    environment:
+      PORT: "8820"
+      PINO_LOG_LEVEL: "info"
+      MYSQL_ROOT_PASSWORD: "at20123"
+      DATABASE_NAME: "questionnairedb"
+      HOST_DATA_BASE: "at20_questionnaire_service-Db-1"
+      USER_DATA_BASE: "root"
+      DB_PORT: "3306"
+    networks:
+      - app-tier
