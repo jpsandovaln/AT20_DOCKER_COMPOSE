@@ -1,0 +1,30 @@
+version: '3.9'
+services:
+    compiler:
+        image: dev-at20-compiler-service
+        build:
+            context: ${PATH_COMPILER_SERVICE}
+            dockerfile: dockerfile.dev
+        ports:
+            - '${PORT_HOST_COMPILER_SERVICE}:${PORT_CONTAINER_COMPILER_SERVICE}'
+        environment:
+            - PORT=${PORT_CONTAINER_COMPILER_SERVICE}
+        volumes:
+            - ${PATH_COMPILER_SERVICE}/src:/app/src
+            - ${PATH_COMPILER_SERVICE}/index.ts/:/app/index.ts
+            - ${PATH_COMPILER_SERVICE}/tsconfig.json:/app/tsconfig.json
+            - ${PATH_COMPILER_SERVICE}/package.json:/app/package.json
+            - ${PATH_COMPILER_SERVICE}/test:/app/test
+    swagger:
+        image: dev-at20-swagger-service
+        build:
+            context: ${PATH_SWAGGER_SERVICE}
+            dockerfile: dockerfile.dev
+        ports:
+            - '${PORT_HOST_SWAGGER_SERVICE}:${PORT_CONTAINER_SWAGGER_SERVICE}'
+        environment:
+            - PORT=${PORT_CONTAINER_SWAGGER_SERVICE}
+        volumes:
+            - ${PATH_SWAGGER_SERVICE}/src:/app/src
+            - ${PATH_SWAGGER_SERVICE}/package.json:/app/package.json
+            - ${PATH_SWAGGER_SERVICE}/public:/app/public
