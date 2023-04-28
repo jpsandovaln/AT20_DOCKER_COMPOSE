@@ -1,26 +1,171 @@
 version: '3.9'
 
-services:
+services:  
+  converter_service:
+    env_file:
+      -  .env
+    image: $CONVERTER_SERVICE_NAME
+    container_name: $CONVERTER_SERVICE_NAME
+    build: $CONVERTER_SERVICE_BUILD
+    ports:
+      - $CONVERTER_SERVICE_EXPOSE_PORT:$CONVERTER_SERVICE_PORT
+    expose:
+      - $CONVERTER_SERVICE_EXPOSE_PORT
+    environment:
+      PORT: $CONVERTER_SERVICE_PORT 
+      FFMPEG: $FFMPEG
+      MAGICK: $MAGICK
+      UPLOADS_PATH_PDF: $UPLOADS_PATH_PDF
+      UPLOADS_PATH_AUDIO: $UPLOADS_PATH_AUDIO
+      UPLOADS_PATH_IMAGE: $UPLOADS_PATH_IMAGE
+      UPLOADS_PATH_VIDEO: $UPLOADS_PATH_VIDEO
+      DOWNLOAD_PATH_AUDIO: $DOWNLOAD_PATH_AUDIO
+      DOWNLOAD_PATH_IMAGE: $DOWNLOAD_PATH_IMAGE
+      DOWNLOAD_PATH_VIDEO: $DOWNLOAD_PATH_VIDEO
+      DOWNLOAD_PATH_PDF: $DOWNLOAD_PATH_PDF
+    restart: always 
+  converter_documentation:
+    env_file:
+      -  .env 
+    image: $Converter_Service_DOC_NAME
+    build: $Converter_Service_DOC_BUILD
+    container_name: $Converter_Service_DOC_NAME
+    ports: 
+      - $CONVERTER_SERVICE_DOC_EXPOSE_PORT:$CONVERTER_Service_DOC_PORT
+    expose:
+      - $CONVERTER_SERVICE_DOC_EXPOSE_PORT
+    environment:
+      PORT: $CONVERTER_SERVICE_DOC_PORT
+    restart: always 
+  questionnaire_service:
+    env_file:
+      -  .env
+    image: questionnaire_service
+    build: $QUESTIONNAIRE_SERVICE_DOCKERFILE
+    container_name: $CONTAINER_NAME_QUESTIONNAIRE
+    ports:
+      - $QUESTIONNAIRE_SERVICE_EXPOSE_PORT:$QUESTIONNAIRE_SERVICE_PORT
+    expose: 
+      - $QUESTIONNAIRE_SERVICE_EXPOSE_PORT
+    environment:
+      PORT: $QUESTIONNAIRE_SERVICE_PORT
+      PINO_LOG_LEVEL: $PINO_LOG_LEVEL
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      DATABASE_NAME: $DATABASE_NAME
+      HOST_DATA_BASE: $HOST_DATA_BASE
+      USER_DATA_BASE: $USER_DATA_BASE
+      DB_PORT: $MYSQL_DB_PORT
+   
+  compiler_service:
+    env_file:
+      -  .env 
+    image: $COMPILER_SERVICE_NAME
+    build: $COMPILER_SERVICE_BUILD
+    container_name: $COMPILER_SERVICE_NAME
+    ports: 
+      - $COMPILER_SERVICE_EXPOSE_PORT:$COMPILER_SERVICE_PORT
+    expose: 
+      - $COMPILER_SERVICE_EXPOSE_PORT
+    environment:
+      PORT: $COMPILER_SERVICE_PORT
+      UPLOADS_PATH: $COMPILER_UPLOADS_PATH 
+      COMPILE_AND_EXECUTE_COMMAND_JS: $COMPILE_AND_EXECUTE_COMMAND_JS
+      COMPILE_AND_EXECUTE_COMMAND_JAVA: $COMPILE_AND_EXECUTE_COMMAND_JAVA
+      COMPILE_AND_EXECUTE_COMMAND_CS: $COMPILE_AND_EXECUTE_COMMAND_CS
+      COMPILE_AND_EXECUTE_COMMAND_PYTHON: $COMPILE_AND_EXECUTE_COMMAND_PYTHON
+      restart: always 
+  compiler_documentation:
+    env_file:
+      -  .env 
+    image: $COMPILER_SERVICE_DOC_NAME
+    build: $COMPILER_SERVICE_DOC_BUILD
+    container_name: $COMPILER_SERVICE_DOC_NAME
+    ports: 
+      - $COMPILER_SERVICE_DOC_EXPOSE_PORT:$COMPILER_Service_DOC_PORT
+    expose:
+      - $COMPILER_SERVICE_DOC_EXPOSE_PORT
+    environment:
+      - PORT = $COMPILER_SERVICE_DOC_PORT
+    restart: always 
+  meetings: 
+    env_file:
+      -  .env
+    image: $MEETINGS_SERVICE_NAME
+    container_name: $MEETINGS_SERVICE_NAME
+    build: $MEETINGS_SERVICE_BUILD
+    ports:
+      - $MEETINGS_SERVICE_EXPOSE_PORT:$MEETINGS_SERVICE_PORT
+    environment:
+      PORT: $MEETINGS_SERVICE_PORT
+      PINO_LOG_LEVEL: $MEETINGS_PINO_LEVEL
+      MONGO_URI: $MONGO_URI
+    restart: always 
   mongo:
-    image: mongo
+    env_file:
+      -  .env
+    image: $MONGO_DB_NAME
+    container_name: $MONGO_DB_NAME
     ports:
-      - '27017:27017'
+      - $MONGO_DB_EXPOSE_PORT:$MONGO_DB_PORT
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-    command: mongod --quiet --logpath /dev/null
-
+       MONGO_INITDB_DATABASE: $MONGO_INITDB_DATABASE
+       MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+       MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+       MONGO_DB_PORT: $MONGO_DB_PORT
+    command: $MONGO_DB_COMMAND
+    volumes:
+      - $MONGO_DB_VOLUMNES
+    restart: always 
   user_service:
-    build: ./AT20_USER_SERVICE
+    env_file:
+      -  .env
+    container_name: $USER_SERVICE_NAME
+    build: $USER_SERVICE_BUILD
     ports:
-      - '5000:5000'
+      - $USER_SERVICE_EXPOSE_PORT:$USER_SERVICE_PORT
+    expose:
+      - $USER_SERVICE_EXPOSE_PORT
     environment:
-      - PORT=5000
-      - MONGO_URI=mongodb://root:example@mongo:27017/myapp
-
+      PORT: $USER_SERVICE_PORT
+      MONGO_URI: $MONGO_URI
+      MEETING_SERVICE_URL: $MEETING_SERVICE_URL
+      MEETING_SERVICE_INTERVIEWS_PATH: $MEETING_SERVICE_INTERVIEW_PATH
+      MEETINGS_SERVICE_PORT: $MEETINGS_SERVICE_PORT
+      MEETINGS_SERVICE_SAVE_PATH: $MEETINGS_SERVICE_SAVE_PATH
+      COMPILER_SERVICE_URL: $COMPILER_SERVICE_URL
+      COMPILER_SERVICE_PATH: $COMPILER_SERVICE_PATH
+      CONVERTER_SERVICE_URL: $CONVERTER_SERVICE_URL
+      CONVERTER_SERVICE_IMAGE_PATH: $CONVERTER_SERVICE_IMAGE_PATH
+      DEF_PASSWORD: $DEF_PASSWORD
+    depends_on:
+      - mongo
+    restart: always 
   admission_service:
-    build: ./AT20_ADMISSION_SERVICE
+    env_file:
+      -  .env
+    container_name: $ADMISSION_SERVICE_NAME
+    build: $ADMISSION_SERVICE_BUILD
     ports:
-      - '3000:3000'
+      - $ADMISSION_SERVICE_EXPOSE_PORT:$ADMISSION_SERVICE_PORT
+    expose: 
+      - $ADMISSION_SERVICE_PORT
     environment:
-      - REACT_APP_API_URL=http://localhost:5000/api
+      REACT_APP_API_URL: $REACT_APP_API_URL
+      APOLLO_SERVER_URL: $APOLLO_SERVER_URL
+    restart: always 
+  mysqlDb:
+    image: mysql:latest
+    build: 
+      dockerfile: $MYSQL_DB_Dockerfile
+    container_name: $MYSQL_HOST
+    ports: 
+      - $MYSQL_DB_EXPOSE_PORT:$MYSQL_PORT
+    expose: 
+      - $MYSQL_DB_EXPOSE_PORT
+    restart: always 
+    environment: 
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_HOST: $MYSQL_HOST
+      MYSQL_PORT: $MYSQL_PORT
+    volumes:
+      - $MYSQL_QUESTIONNAIREDB_VOLUME_ADRESS
